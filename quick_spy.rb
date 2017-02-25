@@ -18,7 +18,7 @@ def start_scraping(url)
       page = Nokogiri::HTML(RestClient::Request.execute(:method => :get, :url => url, :timeout => 10, :open_timeout => 10, :user_agent => "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.35"))
       parse_anchors(page, site_queue, host_lists)
       request_counter += 1
-      print_report(site_queue, host_lists, affected_counter) if request_counter % 10 == 0
+      print_report(site_queue, host_lists, affected_counter, request_counter) if request_counter % 10 == 0
     rescue => e
       puts "Exception: #{e}"
     end
@@ -52,6 +52,7 @@ def print_report(site_queue, host_lists, affected_counter, request_counter)
   puts "#{site_queue.count} sites left in queue."
   puts "#{host_lists.count} unique domains visited."
   puts "#{affected_counter} potentially affected sites found."
+  puts "#{(affected_counter / request_counter) * 100}% of sites affected."
   puts '----------------  Progress Report End  ----------------'
   puts ''
 end
