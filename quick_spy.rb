@@ -52,7 +52,7 @@ def print_report(site_queue, host_lists, affected_counter, request_counter)
   puts "#{site_queue.count} sites left in queue."
   puts "#{host_lists.count} unique domains visited."
   puts "#{affected_counter} potentially affected sites found."
-  puts "#{(affected_counter / request_counter) * 100}% of sites affected."
+  puts "#{((affected_counter.to_f / request_counter) * 100).round(2)}% of sites affected."
   puts '----------------  Progress Report End  ----------------'
   puts ''
 end
