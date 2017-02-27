@@ -5,7 +5,7 @@ require 'uri'
 class QuickSpy
   def initialize
     @init_time = Time.now
-    @site_queue = ['www.reddit.com']
+    @site_queue = ['www.reddit.com', 'www.namecheap.com', 'www.nhl.com']
     @hosts_lists = []
     @affected_counter = 0
     @request_counter = 0
@@ -39,6 +39,7 @@ class QuickSpy
         # puts "Exception: #{e}"
       end
     end
+    puts '****** Scraper Ended ******'
   end
 
   private
@@ -66,6 +67,7 @@ class QuickSpy
     puts ''
     puts '---------------- Progress Report Start ----------------'
     puts "#{calculate_rpm} requests per minute."
+    puts "#{Time.now - @init_time} seconds running."
     puts "#{@request_counter} sites tested."
     puts "#{@site_queue.count} sites left in queue."
     puts "#{@hosts_lists.count} unique domains found."
@@ -84,11 +86,16 @@ class QuickSpy
 end
 
 spider = QuickSpy.new
-# Thread.new{ spider.start_scraping('reddit.com') }
-# Thread.new{ spider.start_scraping('forbes.com') }
-# Thread.new{ spider.start_scraping('ign.com') }
-# Thread.new{ spider.start_scraping('imgur.com') }
-# Thread.new{ spider.start_scraping('namesearch.com') }
-# spider.report
+3.times do
+  Thread.new{ spider.start_scraping() }
+end
+spider.report
 
-# 1 thread around 20-30 rpm
+
+# Results after two minutes of scraping
+
+# 1 Thread
+# 16 requests per minute.
+# 128.594058 seconds running.
+
+# 2 threads
