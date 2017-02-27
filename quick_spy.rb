@@ -5,7 +5,14 @@ require 'uri'
 class QuickSpy
   def initialize
     @init_time = Time.now
-    @site_queue = ['www.reddit.com', 'www.namecheap.com', 'www.nhl.com']
+    @site_queue = ['www.reddit.com', 'www.namecheap.com',
+      'www.nhl.com', 'www.twitter.com', 'www.pinterest.com',
+      'www.techcrunch.com', 'www.newegg.com',
+      'www.glassdoor.com', 'www.news.ycombinator.com',
+      'www.wired.com', 'www.espn.com', 'www.bbc.com',
+      'www.nhl.com', 'www.sabres.com', 'www.simediakit.com',
+      'www.flickr.com', 'www.gatorzone.com', 'www.instantssl.com',
+      'vanityfair.tumblr.com']
     @hosts_lists = []
     @affected_counter = 0
     @request_counter = 0
@@ -24,7 +31,7 @@ class QuickSpy
     # @site_queue << url
     while @site_queue.any?
       url = @site_queue.shift
-      puts "Checking #{get_host_without_www(url)}..."
+      # puts "Checking #{get_host_without_www(url)}..."
       if !`dig #{get_host_without_www(url)} ns | grep cloudflare`.empty?
         puts "#{get_host_without_www(url)} potentially affected by cloudbleed."
         @affected_counter += 1
@@ -86,8 +93,9 @@ class QuickSpy
 end
 
 spider = QuickSpy.new
-3.times do
+40.times do
   Thread.new{ spider.start_scraping() }
+  sleep 0.5
 end
 spider.report
 
@@ -99,3 +107,40 @@ spider.report
 # 128.594058 seconds running.
 
 # 2 threads
+# 33 requests per minute.
+# 120.127803 seconds running.
+
+# 3 threads
+# 64 requests per minute.
+# 120.082089 seconds running.
+
+# 4 threads
+# 88 requests per minute.
+# 110.064693 seconds running.
+
+# 5 threads
+# 107 requests per minute.
+# 120.539096 seconds running.
+
+# 6 threads
+# 136 requests per minute.
+# 120.348035 seconds running.
+
+# 7 threads
+# 147 requests per minute.
+# 120.427262 seconds running.
+
+# 8 threads
+# 177 requests per minute.
+# 110.585258 seconds running.
+
+# 9 threads
+# 211 requests per minute.
+# 122.097392 seconds running
+
+# 10 threads
+# 241 requests per minute.
+# 122.341673 seconds running.
+
+# Why am I manually testing these??
+# ~20ish threads seems to be the sweet spot. Any more doesn't really yield too much
