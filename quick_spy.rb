@@ -27,11 +27,9 @@ class QuickSpy
   end
 
   def start_scraping()
-  # def start_scraping(url)
-    # @site_queue << url
     while @site_queue.any?
       url = @site_queue.shift
-      # puts "Checking #{get_host_without_www(url)}..."
+      puts "Checking #{get_host_without_www(url)}..."
       if !`dig #{get_host_without_www(url)} ns | grep cloudflare`.empty?
         puts "#{get_host_without_www(url)} potentially affected by cloudbleed."
         @affected_counter += 1
@@ -93,7 +91,7 @@ class QuickSpy
 end
 
 spider = QuickSpy.new
-40.times do
+20.times do
   Thread.new{ spider.start_scraping() }
   sleep 0.5
 end
