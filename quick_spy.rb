@@ -17,6 +17,7 @@ class QuickSpy
     @affected_counter = 0
     @request_counter = 0
     @timeout_counter = 0
+    @threads = []
   end
 
   def report
@@ -26,7 +27,17 @@ class QuickSpy
     end
   end
 
-  def start_scraping()
+  # Create seperate spider class
+  def create_spider
+    @threads << Thread.new{ self.start_scraping }
+  end
+
+  def destroy_spiders
+    @threads.each{ |thread| thread.exit }
+  end
+
+  private
+  def start_scraping
     while @site_queue.any?
       url = @site_queue.shift
       puts "Checking #{get_host_without_www(url)}..."
@@ -47,7 +58,6 @@ class QuickSpy
     puts '****** Scraper Ended ******'
   end
 
-  private
   def parse_anchors(page)
     page.css('a').each do |link|
       if check_href(link)
@@ -90,14 +100,6 @@ class QuickSpy
   end
 end
 
-spider = QuickSpy.new
-20.times do
-  Thread.new{ spider.start_scraping() }
-  sleep 0.5
-end
-spider.report
-
-
 # Results after two minutes of scraping
 
 # 1 Thread
@@ -117,7 +119,7 @@ spider.report
 # 110.064693 seconds running.
 
 # 5 threads
-# 107 requests per minute.
+# 107 requests per minute.k
 # 120.539096 seconds running.
 
 # 6 threads
