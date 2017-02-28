@@ -5,14 +5,7 @@ require 'uri'
 class QuickSpy
   def initialize
     @init_time = Time.now
-    @site_queue = ['www.reddit.com', 'www.namecheap.com',
-      'www.nhl.com', 'www.twitter.com', 'www.pinterest.com',
-      'www.techcrunch.com', 'www.newegg.com',
-      'www.glassdoor.com', 'www.news.ycombinator.com',
-      'www.wired.com', 'www.espn.com', 'www.bbc.com',
-      'www.nhl.com', 'www.sabres.com', 'www.simediakit.com',
-      'www.flickr.com', 'www.gatorzone.com', 'www.instantssl.com',
-      'vanityfair.tumblr.com']
+    @site_queue = []
     @hosts_lists = []
     @affected_counter = 0
     @request_counter = 0
@@ -39,17 +32,29 @@ class QuickSpy
   def return_stats
     { init_time: @init_time, affected_counter: @affected_counter,
       request_counter: @request_counter, timeout_counter: @timeout_counter,
-      calculated_rpm: calculate_rpm }
+      calculated_rpm: calculate_rpm, thread_count: @threads.count }
+  end
+
+  # Move this else where.
+  def use_testing_sites
+    @site_queue = ['www.reddit.com', 'www.namecheap.com',
+      'www.nhl.com', 'www.twitter.com', 'www.pinterest.com',
+      'www.techcrunch.com', 'www.newegg.com',
+      'www.glassdoor.com', 'www.news.ycombinator.com',
+      'www.wired.com', 'www.espn.com', 'www.bbc.com',
+      'www.nhl.com', 'www.sabres.com', 'www.simediakit.com',
+      'www.flickr.com', 'www.gatorzone.com', 'www.instantssl.com',
+      'vanityfair.tumblr.com']
   end
 
   private
-  
+
   def start_scraping
     while @site_queue.any?
       url = @site_queue.shift
-      puts "Checking #{get_host_without_www(url)}..."
+      # puts "Checking #{get_host_without_www(url)}..."
       if !`dig #{get_host_without_www(url)} ns | grep cloudflare`.empty?
-        puts "#{get_host_without_www(url)} potentially affected by cloudbleed."
+        # puts "#{get_host_without_www(url)} potentially affected by cloudbleed."
         @affected_counter += 1
       end
       begin
