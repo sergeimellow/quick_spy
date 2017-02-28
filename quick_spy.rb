@@ -21,7 +21,7 @@ class QuickSpy
   end
 
   def report
-    while true
+    loop do
       sleep 10
       print_report
     end
@@ -29,14 +29,21 @@ class QuickSpy
 
   # Create seperate spider class
   def create_spider
-    @threads << Thread.new{ self.start_scraping }
+    @threads << Thread.new { start_scraping }
   end
 
   def destroy_spiders
-    @threads.each{ |thread| thread.exit }
+    @threads.each(&:exit)
+  end
+
+  def return_stats
+    { init_time: @init_time, affected_counter: @affected_counter,
+      request_counter: @request_counter, timeout_counter: @timeout_counter,
+      calculated_rpm: calculate_rpm }
   end
 
   private
+  
   def start_scraping
     while @site_queue.any?
       url = @site_queue.shift
