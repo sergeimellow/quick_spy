@@ -32,7 +32,8 @@ class QuickSpy
   def return_stats
     { init_time: @init_time, affected_counter: @affected_counter,
       request_counter: @request_counter, timeout_counter: @timeout_counter,
-      calculated_rpm: calculate_rpm, thread_count: @threads.count }
+      calculated_rpm: calculate_rpm, active_thread_count: active_thread_count,
+      dead_thread_count: dead_thread_count }
   end
 
   # Move this else where.
@@ -109,6 +110,14 @@ class QuickSpy
   def calculate_rpm
     elapsed_minutes = (Time.now - @init_time) / 60
     (@request_counter / elapsed_minutes).round
+  end
+
+  def active_thread_count
+    @threads.count{ |x| x.alive? }
+  end
+
+  def dead_thread_count
+    @threads.count{ |x| x.stop? }
   end
 end
 
