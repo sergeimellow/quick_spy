@@ -40,7 +40,7 @@ class Spider
     loop do
       hydra = Typhoeus::Hydra.new
       pop_sites.each_with_index do |site, index|
-        request = Typhoeus::Request.new(site, followlocation: true, timeout: 8)
+        request = Typhoeus::Request.new(site, followlocation: true, timeout: 5)
         request.on_complete do |response|
           if response.success?
             # puts "Success: #{site}."
@@ -55,7 +55,10 @@ class Spider
       end
       hydra.run
       report
-      sleep 5
+      # I think things were getting bogged down with so many
+      # requests going though. This sleep prevents a point where all requests
+      # begin to fail
+      sleep 3
     end
   end
 
@@ -74,7 +77,7 @@ class Spider
   end
 
   def pop_sites
-    @site_queue.slice!(0, 80)
+    @site_queue.slice!(0, 100)
   end
 
   def parse_response(response)

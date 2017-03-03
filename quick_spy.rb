@@ -3,8 +3,6 @@ require 'restclient'
 require 'uri'
 require './spider'
 
-# TODO: For some reason after a few minutes the requests start to all fail.
-# Figure that out.
 class QuickSpy
   def initialize
     @affected_counter = 0
