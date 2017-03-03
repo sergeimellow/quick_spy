@@ -216,7 +216,7 @@ site_queue = [
 # threads.each{|x| x.join}
 # puts "Threads took: #{Time.now - timer}"
 
-# #
+#
 hydra = Typhoeus::Hydra.new
 timer = Time.now
 success_count = 0
@@ -238,6 +238,8 @@ hydra.run
 puts "Typhoeus took: #{Time.now - timer}"
 puts "Success Count: #{success_count}"
 puts "Fail Count: #{fail_count}"
+
+
 
 
 # Typhoeus took: 19.701178 with 50
