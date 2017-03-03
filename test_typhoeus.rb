@@ -1,3 +1,4 @@
+require 'nokogiri'
 require 'restclient'
 require 'typhoeus'
 site_queue = [
@@ -226,6 +227,11 @@ site_queue.each_with_index do |site, index|
   request = Typhoeus::Request.new(site, followlocation: true, timeout: 5)
   request.on_complete do |response|
     puts "Site Done: #{site}. Success: #{response.success?}"
+    begin
+      puts Nokogiri::HTML(response.body).css('a')
+    rescue
+
+    end
     response.success? ? success_count += 1 : fail_count += 1
   end
   hydra.queue(request)
