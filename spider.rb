@@ -1,8 +1,12 @@
 require 'typhoeus'
 require 'concurrent'
 
+# Current this is configured to quickly timeout requests on sites.
+# This increases the successful requests per minute but also really increases
+# the number of failures. Increasing the time out or decreasing the
+# number of simultaneous requests per Tyhpoeus hydra should help.
+# Need to find the sweet spot based on your hardware/connection.
 class Spider
-
   def initialize(quick_spy)
     @site_queue = ['www.reddit.com']
     @parse_list = Concurrent::Array.new
@@ -10,6 +14,7 @@ class Spider
     @quick_spy = quick_spy
     @hosts_list = []
     @success_count = 0
+    @affected_counter = 0
     @failure_count = 0
   end
 
@@ -18,9 +23,6 @@ class Spider
     parser = Thread.new{ start_parsing }
     scraper.join
     parser.join
-    # loop do
-    #   # well
-    # end
   end
 
   def start_parsing
@@ -41,12 +43,11 @@ class Spider
         request = Typhoeus::Request.new(site, followlocation: true, timeout: 8)
         request.on_complete do |response|
           if response.success?
-            # puts "Site success: #{site}."
+            # puts "Success: #{site}."
             @parse_list << response
-            # parse_response(response)
             @success_count += 1
           else
-            # puts "Site failure: #{site}."
+            # puts "Failure: #{site}."
             @failure_count += 1
           end
         end
@@ -54,11 +55,7 @@ class Spider
       end
       hydra.run
       report
-      # puts "Checking #{get_host_without_www(url)}..."
-      # if !`dig #{get_host_without_www(url)} ns | grep cloudflare`.empty?
-        # puts "#{get_host_without_www(url)} potentially affected by cloudbleed."
-      #   @affected_counter += 1
-      # end
+      sleep 5
     end
   end
 
@@ -67,16 +64,17 @@ class Spider
   def report
     puts '******* BEGIN REPORT *******'
     puts " Elapsed Time: #{(Time.now - @init_time).round} seconds"
-    puts "Success Count: #{@success_count}"
-    puts "Failure Count: #{@failure_count}"
-    puts "          RPM: #{calculate_rpm}"
-    puts "  Queue Count: #{@site_queue.count}"
-    puts "  Parse Count: #{@parse_list.count}"
+    puts " Success Count: #{@success_count}"
+    puts " Failure Count: #{@failure_count}"
+    puts "Detected Count: #{@affected_counter}"
+    puts "           RPM: #{calculate_rpm}"
+    puts "   Queue Count: #{@site_queue.count}"
+    puts "   Parse Count: #{@parse_list.count}"
     puts '*******  END REPORT  *******'
   end
 
   def pop_sites
-    @site_queue.slice!(0, 100)
+    @site_queue.slice!(0, 80)
   end
 
   def parse_response(response)
@@ -95,8 +93,10 @@ class Spider
   def parse_anchors(anchors)
     anchors.each do |link|
       if check_href(link)
-        @site_queue.push(link.attributes['href'].value)
-        @hosts_list << get_host_without_www(link.attributes['href'].value)
+        url = link.attributes['href'].value
+        test_for_cloudflare(url)
+        @site_queue.push(url)
+        @hosts_list << get_host_without_www(url)
       end
     end
   end
@@ -115,5 +115,13 @@ class Spider
   def calculate_rpm
     elapsed_minutes = (Time.now - @init_time) / 60
     (@success_count / elapsed_minutes).round
+  end
+
+  def test_for_cloudflare(url)
+    # puts "Checking #{get_host_without_www(url)}..."
+    if !`dig #{get_host_without_www(url)} ns | grep cloudflare`.empty?
+      puts "#{get_host_without_www(url)} potentially affected by cloudbleed."
+      @affected_counter += 1
+    end
   end
 end
