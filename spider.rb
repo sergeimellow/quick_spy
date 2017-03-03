@@ -1,11 +1,13 @@
 require 'typhoeus'
 require 'concurrent'
 
-# Current this is configured to quickly timeout requests on sites.
-# This increases the successful requests per minute but also really increases
-# the number of failures. Increasing the time out or decreasing the
-# number of simultaneous requests per Tyhpoeus hydra should help.
-# Need to find the sweet spot based on your hardware/connection.
+# The configuration of this is a bit tricky. You need to set pop_sites to
+# pop a certain amount of sites, set the timeout of the Typhoeus requests,
+# and set the wait at the end of start_scraping based on your hardware
+# and/or connection. Its a balance between success and speed with some
+# mass failure tossed in if you push it too hard.
+# Also can just get a bunch of garbage links from a site that all
+# fail when pulled
 class Spider
   def initialize(quick_spy)
     @site_queue = ['www.reddit.com']
@@ -40,7 +42,7 @@ class Spider
     loop do
       hydra = Typhoeus::Hydra.new
       pop_sites.each_with_index do |site, index|
-        request = Typhoeus::Request.new(site, followlocation: true, timeout: 5)
+        request = Typhoeus::Request.new(site, followlocation: true, timeout: 8)
         request.on_complete do |response|
           if response.success?
             # puts "Success: #{site}."
@@ -58,7 +60,7 @@ class Spider
       # I think things were getting bogged down with so many
       # requests going though. This sleep prevents a point where all requests
       # begin to fail
-      sleep 3
+      sleep 5
     end
   end
 
@@ -77,7 +79,7 @@ class Spider
   end
 
   def pop_sites
-    @site_queue.slice!(0, 100)
+    @site_queue.slice!(0, 80)
   end
 
   def parse_response(response)
@@ -97,7 +99,6 @@ class Spider
     anchors.each do |link|
       if check_href(link)
         url = link.attributes['href'].value
-        test_for_cloudflare(url)
         @site_queue.push(url)
         @hosts_list << get_host_without_www(url)
       end
